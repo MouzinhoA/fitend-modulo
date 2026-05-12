@@ -14,4 +14,14 @@ O sistema utiliza os dados dos check-ins para gerar rankings de desempenho entre
 
 ## Modelo Conceitual
 
-<img width="739" height="699" alt="image" src="https://github.com/user-attachments/assets/1f99ef7b-49ea-4114-bec4-debf4a5eaedf" />
+<div align="center">
+  <h3>Esquema Conceitual</h3>
+  <img src="https://github.com/user-attachments/assets/1f99ef7b-49ea-4114-bec4-debf4a5eaedf" alt="Esquema Conceitual" width="600">
+
+  <h3>Diagrama de Classes</h3>
+  <img src="img/FitEndDiagramaClasse.png"  alt="Diagrama de Classes" width="600">
+
+  <h3>Diagrama de Caso de Uso</h3>
+  <img src="img/FitEndCasoDeUso.png"  alt="Diagrama de Caso de Uso" width="600">
+</div>
+
