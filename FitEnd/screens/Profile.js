@@ -1,14 +1,11 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
-
+import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions,} from 'react-native';
+import { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function Profile() {
+export default function Profile({ setScreen }){
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <LinearGradient
       colors={['#141414', '#070707']}
@@ -16,14 +13,14 @@ export default function Profile() {
     >
       <View style={styles.header}>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setMenuOpen(true)}>
             <Image
             source={require('../assets/menu.png')}
             style={styles.headerIcon}
             />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setScreen('settings')}>
             <Image
             source={require('../assets/settings.png')}
             style={styles.headerIcon}
@@ -58,25 +55,60 @@ export default function Profile() {
         </TouchableOpacity>
 
       </View>
+
+      {menuOpen && (
+  <>
+        <TouchableOpacity
+          style={styles.overlay}
+          onPress={() => setMenuOpen(false)}
+        />
+
+        <View style={styles.sideMenu}>
+
+          <View style={styles.menuProfile}>
+            <Image
+              source={require('../assets/perfil.png')}
+              style={styles.menuImage}
+            />
+
+            <Text style={styles.menuTitle}>Perfil</Text>
+          </View>
+
+          <Text style={styles.menuItem}>Criar Desafio</Text>
+          <Text style={styles.menuItem}>Desafios Ativos</Text>
+          <Text style={styles.menuItem}>Juntar-se ao desafio</Text>
+
+          <View style={styles.bottomMenu}>
+            <Text style={styles.menuItem}>Configurações</Text>
+            <Text style={styles.menuItem}>Ajuda & Feedback</Text>
+            <Text style={styles.menuItem}>Sair</Text>
+          </View>
+
+        </View>
+      </>
+    )}
     </LinearGradient>
   );
 }
 
+const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 55,
+    paddingTop: height * 0.06,
   },
 
   headerIcon: {
-    width: 38,
-    height: 38,
+    width: width * 0.08,
+    height: width * 0.08,
+    maxWidth: 38,
+    maxHeight: 38,
 },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: width * 0.05,
   },
 
   icon: {
@@ -85,25 +117,25 @@ const styles = StyleSheet.create({
   },
 
   profileImage: {
-    width: 210,
-    height: 210,
+    width: width * 0.45,
+    height: width * 0.45,
     borderRadius: 999,
     alignSelf: 'center',
-    marginTop: 25,
+    marginTop: height * 0.03,
   },
 
   name: {
     color: '#fff',
-    fontSize: 28,
+    fontSize: width * 0.065,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 18,
   },
 
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 55,
+    marginTop: height * 0.05,
   },
 
   tab: {
@@ -113,20 +145,70 @@ const styles = StyleSheet.create({
 
   activeTabText: {
     color: '#8b4dff',
-    fontSize: 20,
+    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
 
   tabText: {
     color: '#4a49c9',
-    fontSize: 20,
+    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
 
   activeLine: {
     width: '100%',
-    height: 5,
+    height: 4,
     backgroundColor: '#7b2cff',
-    marginTop: 12,
+    marginTop: 10,
   },
+
+  overlay: {
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0,0,0,0.4)',
+},
+
+sideMenu: {
+  position: 'absolute',
+  left: 0,
+  top: 0,
+  width: '72%',
+  height: '100%',
+  backgroundColor: '#000',
+  paddingTop: 70,
+  paddingHorizontal: 22,
+},
+
+menuProfile: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 40,
+},
+
+menuImage: {
+  width: 60,
+  height: 60,
+  borderRadius: 999,
+  marginRight: 15,
+},
+
+menuTitle: {
+  color: '#fff',
+  fontSize: 22,
+  fontWeight: 'bold',
+},
+
+menuItem: {
+  color: '#fff',
+  fontSize: 20,
+  marginBottom: 12,
+},
+
+bottomMenu: {
+  position: 'absolute',
+  bottom: 60,
+  left: 22,
+},
+
 });

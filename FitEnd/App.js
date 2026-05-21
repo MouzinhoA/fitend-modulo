@@ -1,16 +1,26 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, } from 'react-native';
+import { StyleSheet, Dimensions, Text, View, TextInput, TouchableOpacity, Image, } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import Profile from './screens/Profile';
+import Settings from './screens/Settings';
 
 export default function App() {
   
   const [logged, setLogged] = useState(false);
+  const [screen, setScreen] = useState('profile');
 
-  if (logged) {
-    return <Profile />;
+ if (logged) {
+
+  if (screen === 'profile') {
+    return <Profile setScreen={setScreen} />;
   }
+
+  if (screen === 'settings') {
+    return <Settings setScreen={setScreen} />;
+  }
+
+}
   
   return (
     <LinearGradient
@@ -55,34 +65,38 @@ export default function App() {
   );
 }
 
+const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#340065',
     alignItems: 'center',
-    paddingTop: 160,
+    justifyContent: 'center',
+    paddingHorizontal: width * 0.06,
   },
 
   logo: {
-    width: 220,
-    height: 140,
-    marginBottom: 40,
+    width: width * 0.55,
+    height: height * 0.18,
+    marginBottom: height * 0.05,
   },
 
    input: {
-    width: '82%',
-    height: 65,
+    width: '100%',
+    maxWidth: 350,
+    height: height * 0.075,
     backgroundColor: '#e9e9e9',
     borderRadius: 12,
-    paddingHorizontal: 24,
-    fontSize: 18,
-    marginBottom: 26,
+    paddingHorizontal: 20,
+    fontSize: width * 0.045,
+    marginBottom: 20,
     color: '#000',
   },
 
   button: {
-    width: '82%',
-    height: 65,
+    width: '100%',
+    maxWidth: 350,
+    height: height * 0.075,
     backgroundColor: '#02003d',
     borderRadius: 12,
     alignItems: 'center',
@@ -92,24 +106,23 @@ const styles = StyleSheet.create({
 
   buttonText: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: width * 0.05,
     fontWeight: '400',
   },
 
   forgotPassword: {
     color: '#fff',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: width * 0.04,
+    marginTop: 18,
   },
 
   bottomContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingBottom: 60,
+    position: 'absolute',
+    bottom: height * 0.05,
   },
 
   createAccount: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: width * 0.045,
   },
 });
