@@ -1,10 +1,20 @@
 import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions,} from 'react-native';
 import { useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import Settings from './Settings';
 
-export default function Profile({ setScreen }){
+export default function Profile({ setLogged }){
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState('profile');
+
+  const logout = () => {
+    setLogged(false);
+  };
+
+  if (currentScreen === 'settings') {
+  return <Settings setCurrentScreen={setCurrentScreen} />;
+  }
 
   return (
     <LinearGradient
@@ -20,7 +30,7 @@ export default function Profile({ setScreen }){
             />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setScreen('settings')}>
+        <TouchableOpacity onPress={() => setCurrentScreen('settings')}>
             <Image
             source={require('../assets/settings.png')}
             style={styles.headerIcon}
@@ -79,9 +89,13 @@ export default function Profile({ setScreen }){
           <Text style={styles.menuItem}>Juntar-se ao desafio</Text>
 
           <View style={styles.bottomMenu}>
-            <Text style={styles.menuItem}>Configurações</Text>
+            <TouchableOpacity onPress={() => setCurrentScreen('settings')}>
+              <Text style={styles.menuItem}>Configurações</Text>
+            </TouchableOpacity>
             <Text style={styles.menuItem}>Ajuda & Feedback</Text>
-            <Text style={styles.menuItem}>Sair</Text>
+            <TouchableOpacity onPress={logout}>
+              <Text style={styles.menuItem}>Sair</Text>
+            </TouchableOpacity>
           </View>
 
         </View>

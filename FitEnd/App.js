@@ -11,18 +11,10 @@ export default function App() {
   const [screen, setScreen] = useState('profile');
 
  if (logged) {
-
-  if (screen === 'profile') {
-    return <Profile setScreen={setScreen} />;
-  }
-
-  if (screen === 'settings') {
-    return <Settings setScreen={setScreen} />;
-  }
-
+  return <Profile setLogged={setLogged} />;
 }
-  
-  return (
+
+return (
     <LinearGradient
       colors={['#340065', '#01065a']}
       style={styles.container}
@@ -48,7 +40,8 @@ export default function App() {
         style={styles.input}
       />
 
-      <TouchableOpacity style={styles.button} onPress={() => setLogged(true)}>
+      <TouchableOpacity style={styles.button} 
+      onPress={() => {setLogged(true);}}>
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 
