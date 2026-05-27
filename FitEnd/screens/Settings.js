@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-export default function Settings({ setCurrentScreen }) {
+export default function Settings({ navigation }) {
 
   return (
     <LinearGradient
@@ -20,7 +20,7 @@ export default function Settings({ setCurrentScreen }) {
       style={styles.container}
     >
 
-      <TouchableOpacity style={styles.backButton} onPress={() => setCurrentScreen('profile')}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Image
             source={require('../assets/back.png')}
             style={styles.backImg}
