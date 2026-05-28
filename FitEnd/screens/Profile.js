@@ -7,70 +7,113 @@ import {
   Dimensions,
   TextInput,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import Settings from './Settings';
-import Invitation from './Invitation';
-import Challenge from './Challenge';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuth } from '../src/contexts/AuthContext';
+import { api } from '../src/services/api';
 
-
+const { width, height } = Dimensions.get('window');
 
 export default function Profile({ navigation }){
+  const { usuario, logout, carregarPerfil } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('ativos');
-  const [selectedType, setSelectedType] = useState('Tipo');
+  const [selectedMetrica, setSelectedMetrica] = useState(null);
   const [showOptions, setShowOptions] = useState(false);
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
+  const [titulo, setTitulo] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [metricas, setMetricas] = useState([]);
+  const [desafios, setDesafios] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  const logout = () => {
+  useEffect(() => {
+    carregarPerfil();
+    carregarDados();
+  }, []);
+
+  async function carregarDados() {
+    setLoading(true);
+    try {
+      const [desafiosData, metricasData] = await Promise.all([
+        api.desafios.meus(),
+        api.metricas.listar(),
+      ]);
+      setDesafios(desafiosData);
+      setMetricas(metricasData);
+    } catch (err) {
+      Alert.alert('Erro', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCriarDesafio() {
+    if (!titulo || !descricao || !selectedMetrica) {
+      Alert.alert('Aviso', 'Preencha título, descrição e selecione uma métrica');
+      return;
+    }
+    setCreating(true);
+    try {
+      const desafio = await api.desafios.criar({
+        titulo,
+        descricao,
+        data_inicio: startDate.toISOString(),
+        data_fim: endDate.toISOString(),
+        metrica_id: selectedMetrica,
+      });
+      Alert.alert('Sucesso', `Desafio criado! Código: ${desafio.cod_convite}`);
+      setTitulo('');
+      setDescricao('');
+      setSelectedMetrica(null);
+      setActiveTab('ativos');
+      carregarDados();
+    } catch (err) {
+      Alert.alert('Erro', err.message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  const handleLogout = () => {
+    logout();
     navigation.replace('Login');
   };
-
-  const desafios = [
-  {
-    id: '1',
-    titulo: 'Família Fit #30dias',
-  },
-
-  ];
 
   return (
     <LinearGradient
   colors={['#141414', '#070707']}
   style={styles.container}
 >
-
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
     >
-
       <View style={styles.header}>
-
         <TouchableOpacity onPress={() => setMenuOpen(true)}>
             <Image
             source={require('../assets/menu.png')}
             style={styles.headerIcon}
             />
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
             <Image
             source={require('../assets/settings.png')}
             style={styles.headerIcon}
             />
         </TouchableOpacity>
-
     </View>
 
       <Image
@@ -79,7 +122,7 @@ export default function Profile({ navigation }){
       />
 
       <Text style={styles.name}>
-        Morgana Marinho
+        {usuario?.nome || 'Carregando...'}
       </Text>
 
   <View style={styles.tabsContainer}>
@@ -96,12 +139,10 @@ export default function Profile({ navigation }){
       >
         Ativos
       </Text>
-
       {activeTab === 'ativos' && (
         <View style={styles.activeLine} />
       )}
     </TouchableOpacity>
-
     <TouchableOpacity
       style={styles.tab}
       onPress={() => setActiveTab('criar')}
@@ -115,61 +156,56 @@ export default function Profile({ navigation }){
       >
         Criar Desafio
       </Text>
-
       {activeTab === 'criar' && (
         <View style={styles.activeLine} />
       )}
     </TouchableOpacity>
   </View>
-  
+
   {activeTab === 'ativos' && (
-
-  <View style={styles.challengesContainer}>
-
-    {desafios.map((desafio) => (
-
-      <TouchableOpacity
-        key={desafio.id}
-        style={styles.challengeCard}
-        onPress={() => navigation.navigate('Challenge')}
-      >
-
-        <Text style={styles.challengeTitle}>
-          {desafio.titulo}
+    <View style={styles.challengesContainer}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#8b4dff" style={{ marginTop: 40 }} />
+      ) : desafios.length === 0 ? (
+        <Text style={{ color: '#777', textAlign: 'center', marginTop: 40, fontSize: 18 }}>
+          Nenhum desafio encontrado
         </Text>
-
-      </TouchableOpacity>
-
-    ))}
-
-  </View>
-
+      ) : (
+        desafios.map((desafio) => (
+          <TouchableOpacity
+            key={desafio.id_desafio}
+            style={styles.challengeCard}
+            onPress={() => navigation.navigate('Challenge', { desafioId: desafio.id_desafio })}
+          >
+            <Text style={styles.challengeTitle}>
+              {desafio.titulo}
+            </Text>
+          </TouchableOpacity>
+        ))
+      )}
+    </View>
   )}
-  
+
   {activeTab === 'criar' && (
-
   <View style={styles.formContainer}>
-
     <TextInput
       placeholder="Título"
       placeholderTextColor="#777"
       style={styles.input}
+      value={titulo}
+      onChangeText={setTitulo}
     />
-
     <TextInput
       placeholder="Descrição"
       placeholderTextColor="#777"
       style={styles.descriptionInput}
       multiline
+      value={descricao}
+      onChangeText={setDescricao}
     />
-
     <View style={styles.dateContainer}>
-
       <View style={styles.dateBox}>
-        <Text style={styles.dateLabel}>
-          Início
-        </Text>
-
+        <Text style={styles.dateLabel}>Início</Text>
         <TouchableOpacity
           style={styles.dateInput}
           onPress={() => setShowStartPicker(true)}
@@ -178,7 +214,6 @@ export default function Profile({ navigation }){
             {startDate.toLocaleDateString('pt-BR')}
           </Text>
         </TouchableOpacity>
-
         {showStartPicker && (
           <DateTimePicker
             value={startDate}
@@ -187,20 +222,13 @@ export default function Profile({ navigation }){
             minimumDate={new Date()}
             onChange={(event, selectedDate) => {
               setShowStartPicker(false);
-
-              if (selectedDate) {
-                setStartDate(selectedDate);
-              }
+              if (selectedDate) setStartDate(selectedDate);
             }}
           />
         )}
       </View>
-
       <View style={styles.dateBox}>
-        <Text style={styles.dateLabel}>
-          Fim
-        </Text>
-
+        <Text style={styles.dateLabel}>Fim</Text>
         <TouchableOpacity
           style={styles.dateInput}
           onPress={() => setShowEndPicker(true)}
@@ -209,34 +237,30 @@ export default function Profile({ navigation }){
             {endDate.toLocaleDateString('pt-BR')}
           </Text>
         </TouchableOpacity>
-
         {showEndPicker && (
           <DateTimePicker
             value={endDate}
             mode="date"
             display="default"
-            minimumDate={new Date()}
+            minimumDate={startDate}
             onChange={(event, selectedDate) => {
               setShowEndPicker(false);
-
-              if (selectedDate) {
-                setEndDate(selectedDate);
-              }
+              if (selectedDate) setEndDate(selectedDate);
             }}
           />
         )}
       </View>
-
     </View>
 
     <TouchableOpacity
       style={styles.selectInput}
       onPress={() => setShowOptions(!showOptions)}
     >
-      <Text style={styles.selectText}>
-        {selectedType}
+      <Text style={[styles.selectText, selectedMetrica ? { color: '#fff' } : {}]}>
+        {selectedMetrica
+          ? metricas.find(m => m.id_metrica === selectedMetrica)?.nome || 'Selecionado'
+          : 'Selecione uma métrica'}
       </Text>
-
       <Ionicons
         name={showOptions ? "chevron-up" : "chevron-down"}
         size={22}
@@ -246,52 +270,30 @@ export default function Profile({ navigation }){
 
     {showOptions && (
       <View style={styles.optionsContainer}>
-
-        <TouchableOpacity
-          style={styles.option}
-          onPress={() => {
-            setSelectedType('Dias ativos');
-            setShowOptions(false);
-          }}
-        >
-          <Text style={styles.optionText}>
-            Dias ativos
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.option}
-          onPress={() => {
-            setSelectedType('ml (água)');
-            setShowOptions(false);
-          }}
-        >
-          <Text style={styles.optionText}>
-            ml (água)
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.option}
-          onPress={() => {
-            setSelectedType('km');
-            setShowOptions(false);
-          }}
-        >
-          <Text style={styles.optionText}>
-            km
-          </Text>
-        </TouchableOpacity>
-
+        {metricas.map((metrica) => (
+          <TouchableOpacity
+            key={metrica.id_metrica}
+            style={styles.option}
+            onPress={() => {
+              setSelectedMetrica(metrica.id_metrica);
+              setShowOptions(false);
+            }}
+          >
+            <Text style={styles.optionText}>
+              {metrica.nome} ({metrica.sigla})
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     )}
 
-    <TouchableOpacity style={styles.createButton}>
-      <Text style={styles.createButtonText}>
-        Criar
-      </Text>
-    </TouchableOpacity>
-
+    {creating ? (
+      <ActivityIndicator size="large" color="#8b4dff" style={{ marginTop: 20 }} />
+    ) : (
+      <TouchableOpacity style={styles.createButton} onPress={handleCriarDesafio}>
+        <Text style={styles.createButtonText}>Criar</Text>
+      </TouchableOpacity>
+    )}
   </View>
   )}
   </ScrollView>
@@ -302,9 +304,7 @@ export default function Profile({ navigation }){
       style={styles.overlay}
       onPress={() => setMenuOpen(false)}
     />
-
     <View style={styles.sideMenu}>
-
       <View style={styles.menuProfile}>
         <Image
           source={require('../assets/perfil.png')}
@@ -317,42 +317,32 @@ export default function Profile({ navigation }){
             <Text style={styles.menuTitle}>Perfil</Text>
           </TouchableOpacity>
       </View>
-
       <TouchableOpacity onPress={() => {
           setActiveTab('criar');
           setMenuOpen(false);
         }}
       >
-        <Text style={styles.menuItem}>
-          Criar Desafio
-        </Text>
+        <Text style={styles.menuItem}>Criar Desafio</Text>
       </TouchableOpacity>
-
-      
         <TouchableOpacity onPress={() => {
             setActiveTab('ativos');
             setMenuOpen(false);
           }}>
           <Text style={styles.menuItem}>Desafios Ativos</Text>
         </TouchableOpacity>
-      
-
       <TouchableOpacity onPress={() => {
           navigation.navigate('Invitation');
           setMenuOpen(false);
         }}
       >
-        <Text style={styles.menuItem}>
-          Juntar-se ao desafio
-        </Text>
+        <Text style={styles.menuItem}>Juntar-se ao desafio</Text>
       </TouchableOpacity>
-
       <View style={styles.bottomMenu}>
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.menuItem}>Configurações</Text>
         </TouchableOpacity>
         <Text style={styles.menuItem}>Ajuda & Feedback</Text>
-        <TouchableOpacity onPress={logout}>
+        <TouchableOpacity onPress={handleLogout}>
           <Text style={styles.menuItem}>Sair</Text>
         </TouchableOpacity>
       </View>
@@ -364,7 +354,6 @@ export default function Profile({ navigation }){
   );
 }
 
-const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -588,11 +577,6 @@ createButtonText: {
   color: '#fff',
   fontSize: width * 0.05,
   fontWeight: 'bold',
-},
-
-dateText: {
-  color: '#fff',
-  fontSize: width * 0.045,
 },
 
 challengesContainer: {
