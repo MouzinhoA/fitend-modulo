@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StatusDesafio {
+  Pendente
+  Ativo
+  Encerrado
+  Cancelado
+}
+
+enum TipoDado {
+  numerico
+  booleano
+}
+
+model Usuario {
+  id_usuario String @id @default(uuid()) @db.Uuid
+  nome       String
+  email      String @unique
+  senha      String
+  foto       String?
+
+  desafios        Desafio[]
+  participacoes   Participacao[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Metrica {
+  id_metrica String @id @default(uuid()) @db.Uuid
+  nome       String @unique
+  sigla      String
+  tipo_dado  TipoDado
+
+  desafios    Desafio[]
+  created_at  DateTime @default(now())
+}
+
+model Desafio {
+  id_desafio  String       @id @default(uuid()) @db.Uuid
+  titulo      String
+  descricao   String
+  data_inicio DateTime
+  data_fim    DateTime
+  status      StatusDesafio @default(Pendente)
+  cod_convite String        @unique
+  criador_id  String        @db.Uuid
+  metrica_id  String        @db.Uuid
+
+  criador       Usuario        @relation(fields: [criador_id], references: [id_usuario])
+  metrica       Metrica        @relation(fields: [metrica_id], references: [id_metrica])
+  participacoes Participacao[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Participacao {
+  id_participante String   @id @default(uuid()) @db.Uuid
+  usuario_id      String   @db.Uuid
+  desafio_id      String   @db.Uuid
+  data_ingresso   DateTime @default(now())
+  progresso_total Float    @default(0)
+
+  usuario   Usuario   @relation(fields: [usuario_id], references: [id_usuario])
+  desafio   Desafio   @relation(fields: [desafio_id], references: [id_desafio])
+  checkins  Checkin[]
+
+  created_at DateTime @default(now())
+
+  @@unique([usuario_id, desafio_id])
+}
+
+model Checkin {
+  id_checkin       String   @id @default(uuid()) @db.Uuid
+  participacao_id  String   @db.Uuid
+  data_hora        DateTime @default(now())
+  valor_registrado Float
+  foto_url         String?
+
+  participacao Participacao @relation(fields: [participacao_id], references: [id_participante])
+
+  created_at DateTime @default(now())
+}
