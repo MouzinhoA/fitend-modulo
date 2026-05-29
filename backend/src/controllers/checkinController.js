@@ -37,4 +37,17 @@ async function listarDoDesafio(req, res, next) {
   }
 }
 
-module.exports = { criar, listar, listarDoDesafio };
+async function criarPorUsuario(req, res, next) {
+  try {
+    const checkin = await checkinService.criarCheckinPorUsuario(
+      req.usuario.id_usuario,
+      req.params.desafioId,
+      req.body,
+    );
+    res.status(201).json(checkinParaResposta(checkin));
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { criar, listar, listarDoDesafio, criarPorUsuario };

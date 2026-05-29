@@ -32,6 +32,10 @@ export function getToken() {
   return token;
 }
 
+export function getBaseUrl() {
+  return API_BASE.replace('/api', '');
+}
+
 async function request(endpoint, options = {}) {
   const config = {
     headers: {
@@ -50,12 +54,53 @@ async function request(endpoint, options = {}) {
     );
   }
 
+  if (res.status === 204) {
+    return null;
+  }
+
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error || 'Erro na requisição');
+    let msg = data.error || 'Erro na requisição';
+    if (data.detalhes && Array.isArray(data.detalhes)) {
+      msg += '\n' + data.detalhes.map(d => `- ${d.campo}: ${d.mensagem}`).join('\n');
+    }
+    throw new Error(msg);
   }
 
+  return data;
+}
+
+async function uploadPhoto(uri) {
+  const formData = new FormData();
+  const filename = uri.split('/').pop() || 'photo.jpg';
+  const ext = filename.split('.').pop() || 'jpg';
+  formData.append('foto', {
+    uri,
+    name: `upload.${ext}`,
+    type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+  });
+
+  const config = {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'Content-Type': 'multipart/form-data',
+    },
+    body: formData,
+  };
+
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/upload`, config);
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor para upload');
+  }
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Erro no upload');
+  }
   return data;
 }
 
@@ -89,7 +134,9 @@ export const api = {
   },
   checkins: {
     criar: (participacaoId, body) => request(`/checkins/${participacaoId}`, { method: 'POST', body: JSON.stringify(body) }),
+    criarPorUsuario: (desafioId, body) => request(`/checkins/desafio/${desafioId}`, { method: 'POST', body: JSON.stringify(body) }),
     listar: (participacaoId) => request(`/checkins/${participacaoId}`),
     listarDoDesafio: (desafioId) => request(`/checkins/desafio/${desafioId}`),
   },
+  upload: uploadPhoto,
 };

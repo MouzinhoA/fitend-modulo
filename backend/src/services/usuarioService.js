@@ -77,8 +77,21 @@ async function atualizarUsuario(id, data) {
   }
 
   if (data.senha) {
+    if (!data.senha_atual) {
+      const err = new Error('Senha atual é obrigatória para alterar a senha');
+      err.statusCode = 400;
+      throw err;
+    }
+    const senhaValida = await bcrypt.compare(data.senha_atual, usuario.senha);
+    if (!senhaValida) {
+      const err = new Error('Senha atual incorreta');
+      err.statusCode = 401;
+      throw err;
+    }
     data.senha = await bcrypt.hash(data.senha, 10);
   }
+
+  delete data.senha_atual;
 
   return prisma.usuario.update({
     where: { id_usuario: id },

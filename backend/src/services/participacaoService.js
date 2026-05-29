@@ -92,6 +92,10 @@ async function sairDoDesafio(participacaoId, usuarioId) {
     throw err;
   }
 
+  await prisma.checkin.deleteMany({
+    where: { participacao_id: participacaoId },
+  });
+
   await prisma.participacao.delete({
     where: { id_participante: participacaoId },
   });

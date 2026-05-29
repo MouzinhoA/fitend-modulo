@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../src/contexts/AuthContext';
-import { api } from '../src/services/api';
+import { api, getBaseUrl } from '../src/services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,9 +39,16 @@ export default function Profile({ navigation }){
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const baseUrl = getBaseUrl();
+
   useEffect(() => {
     carregarPerfil();
     carregarDados();
+    const unsubscribe = navigation.addListener('focus', () => {
+      carregarPerfil();
+      carregarDados();
+    });
+    return unsubscribe;
   }, []);
 
   async function carregarDados() {
@@ -117,7 +124,7 @@ export default function Profile({ navigation }){
     </View>
 
       <Image
-        source={require('../assets/perfil.png')}
+        source={usuario?.foto ? { uri: `${baseUrl}${usuario.foto}` } : require('../assets/perfil.png')}
         style={styles.profileImage}
       />
 
@@ -307,7 +314,7 @@ export default function Profile({ navigation }){
     <View style={styles.sideMenu}>
       <View style={styles.menuProfile}>
         <Image
-          source={require('../assets/perfil.png')}
+          source={usuario?.foto ? { uri: `${baseUrl}${usuario.foto}` } : require('../assets/perfil.png')}
           style={styles.menuImage}
         />
           <TouchableOpacity onPress={() => {

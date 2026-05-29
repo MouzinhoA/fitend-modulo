@@ -9,7 +9,7 @@ const criarUsuarioSchema = z.object({
     .email('Email inválido'),
   senha: z.string({ required_error: 'Senha é obrigatória' })
     .min(6, 'Senha deve ter no mínimo 6 caracteres'),
-  foto: z.string().url('URL inválida').optional().nullable(),
+  foto: z.string().optional().nullable(),
 });
 
 const loginSchema = z.object({
@@ -22,7 +22,8 @@ const atualizarUsuarioSchema = z.object({
   nome: z.string().min(2).max(100).optional(),
   email: z.string().email('Email inválido').optional(),
   senha: z.string().min(6).optional(),
-  foto: z.string().url('URL inválida').optional().nullable(),
+  senha_atual: z.string().optional(),
+  foto: z.string().optional().nullable(),
 });
 
 module.exports = {

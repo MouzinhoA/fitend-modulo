@@ -56,8 +56,51 @@ async function listarCheckinsDoDesafio(desafioId) {
   });
 }
 
+async function criarCheckinPorUsuario(usuarioId, desafioId, data) {
+  let participacao = await prisma.participacao.findUnique({
+    where: {
+      usuario_id_desafio_id: {
+        usuario_id: usuarioId,
+        desafio_id: desafioId,
+      },
+    },
+    include: { desafio: true },
+  });
+
+  if (!participacao) {
+    participacao = await prisma.participacao.create({
+      data: {
+        usuario_id: usuarioId,
+        desafio_id: desafioId,
+      },
+      include: { desafio: true },
+    });
+  }
+
+  if (participacao.desafio.status !== 'Ativo') {
+    const err = new Error('O desafio não está ativo');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const checkin = await prisma.checkin.create({
+    data: {
+      participacao_id: participacao.id_participante,
+      valor_registrado: data.valor_registrado,
+      data_hora: data.data_hora ? new Date(data.data_hora) : new Date(),
+      foto_url: data.foto_url || null,
+    },
+  });
+
+  const { recalcularProgresso } = require('./participacaoService');
+  await recalcularProgresso(participacao.id_participante);
+
+  return checkin;
+}
+
 module.exports = {
   criarCheckin,
   listarCheckins,
   listarCheckinsDoDesafio,
+  criarCheckinPorUsuario,
 };

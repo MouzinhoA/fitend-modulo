@@ -34,10 +34,19 @@ async function criarDesafio(data, criadorId) {
     },
   });
 
+  await prisma.participacao.create({
+    data: {
+      usuario_id: criadorId,
+      desafio_id: desafio.id_desafio,
+    },
+  });
+
   return desafio;
 }
 
 async function listarDesafios() {
+  await autoAtualizarStatus();
+
   return prisma.desafio.findMany({
     include: {
       criador: true,
@@ -49,7 +58,29 @@ async function listarDesafios() {
   });
 }
 
+async function autoAtualizarStatus() {
+  const agora = new Date();
+
+  await prisma.desafio.updateMany({
+    where: {
+      status: 'Pendente',
+      data_inicio: { lte: agora },
+    },
+    data: { status: 'Ativo' },
+  });
+
+  await prisma.desafio.updateMany({
+    where: {
+      status: 'Ativo',
+      data_fim: { lte: agora },
+    },
+    data: { status: 'Encerrado' },
+  });
+}
+
 async function listarDesafiosDoUsuario(usuarioId) {
+  await autoAtualizarStatus();
+
   return prisma.desafio.findMany({
     where: {
       OR: [
@@ -72,6 +103,8 @@ async function listarDesafiosDoUsuario(usuarioId) {
 }
 
 async function buscarDesafioPorId(id) {
+  await autoAtualizarStatus();
+
   const desafio = await prisma.desafio.findUnique({
     where: { id_desafio: id },
     include: {
@@ -143,6 +176,14 @@ async function deletarDesafio(id, criadorId) {
     throw err;
   }
 
+  await prisma.checkin.deleteMany({
+    where: { participacao: { desafio_id: id } },
+  });
+
+  await prisma.participacao.deleteMany({
+    where: { desafio_id: id },
+  });
+
   await prisma.desafio.delete({
     where: { id_desafio: id },
   });
@@ -207,4 +248,5 @@ module.exports = {
   deletarDesafio,
   buscarRanking,
   buscarPorCodigoConvite,
+  autoAtualizarStatus,
 };
