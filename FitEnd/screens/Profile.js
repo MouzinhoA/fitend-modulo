@@ -348,7 +348,6 @@ export default function Profile({ navigation }){
         <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.menuItem}>Configurações</Text>
         </TouchableOpacity>
-        <Text style={styles.menuItem}>Ajuda & Feedback</Text>
         <TouchableOpacity onPress={handleLogout}>
           <Text style={styles.menuItem}>Sair</Text>
         </TouchableOpacity>
