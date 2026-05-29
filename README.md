@@ -1,5 +1,8 @@
 # FITEND
 
+- **Mini Mundo:** [Documento](https://docs.google.com/document/d/1WjJsBXv1miiSLkKNQxai5bN_rHCNMtKrB7KGZRszRsw/edit?tab=t.0)
+- **Documento de Visão:** [Documento](https://docs.google.com/document/d/12u9W5QgVkFjlkzsIrpM_Wg4UZVWzH0hOQbgDxGQm6LE/edit?tab=t.0)
+
 ## Mini Mundo
 
 O Fit End é uma plataforma de gamificação voltada para a criação e gestão de desafios de hábitos entre amigos. O foco é permitir que usuários criem competições saudáveis baseadas em métricas variadas (como ingestão de água, exercícios físicos ou leitura), incentivando a constância através de rankings e registros de progresso.
